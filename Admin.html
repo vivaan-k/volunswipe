@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>VolunSwipe admin</title>
+<style>
+:root{--bg:#f3f5f9;--card:#fff;--ink:#14213d;--muted:#5b667a;--line:#dde2ec;--blue:#3b4cca;--ok:#1f8a57;--bad:#c2410c}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1420;--card:#192032;--ink:#edf0f7;--muted:#9aa5bb;--line:#2a344b;--blue:#8c99f5;--ok:#4ade80;--bad:#fb923c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 system-ui,sans-serif;padding:20px 18px 60px}
+main{max-width:520px;margin:0 auto}
+h1{font-size:1.5rem;margin:0 0 4px}h2{font-size:1.1rem;margin:28px 0 4px}
+.muted{color:var(--muted);margin:0 0 8px}
+label{display:block;font-weight:700;margin:14px 0 6px}
+input,select{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:inherit;font:inherit}
+.days{display:flex;flex-wrap:wrap;gap:8px}
+.days label{margin:0;font-weight:400;display:flex;align-items:center;gap:6px;padding:8px 12px;border:1.5px solid var(--line);border-radius:99px;background:var(--card)}
+.days input{width:auto}
+.check{display:flex;align-items:center;gap:10px;font-weight:400}
+.check input{width:auto}
+button{width:100%;margin-top:20px;padding:14px;border:0;border-radius:12px;background:var(--blue);color:#fff;font:700 1rem system-ui,sans-serif;cursor:pointer}
+button:disabled{opacity:.5}
+#msg{min-height:1.5em;margin-top:14px;font-weight:700}
+</style>
+</head>
+<body>
+<main>
+  <h1>VolunSwipe admin</h1>
+  <p class="muted">Only works with your private GitHub token. Without it, this page cannot change anything.</p>
+
+  <h2>Connection</h2>
+  <label for="repo">Repository</label>
+  <input id="repo" value="vivaan-k/volunswipe" autocomplete="off">
+  <label for="token">GitHub token</label>
+  <input id="token" type="password" autocomplete="off" placeholder="github_pat_...">
+  <label class="check"><input id="remember" type="checkbox"> Remember the token on this device (not on shared computers)</label>
+
+  <h2>New place</h2>
+  <label for="org">Organization</label><input id="org" maxlength="80">
+  <label for="task">What the volunteer does</label><input id="task" maxlength="120">
+  <label for="cause">Cause</label><select id="cause"></select>
+  <label for="town">Town</label><select id="town"></select>
+  <label>Days</label><div class="days" id="days"></div>
+  <label for="time">Time, like 9am to 12pm</label><input id="time" maxlength="40">
+  <label for="hours">Hours per shift</label><input id="hours" type="number" min="0.5" max="24" step="0.5" value="3">
+  <label for="age">Minimum age</label><input id="age" type="number" min="5" max="21" value="14">
+  <label for="link">Sign-up link (starts with https://)</label><input id="link" type="url" placeholder="https://">
+  <label class="check"><input id="verified" type="checkbox"> I confirmed these details with the organization</label>
+
+  <button id="go" onclick="addPlace()">Add place</button>
+  <p id="msg" role="status"></p>
+</main>
+
+<script>
+const CAUSES = ["Food", "Animals", "Environment", "Education", "Seniors", "Community"];
+const TOWNS = ["Liberty Hill", "Leander", "Cedar Park", "Georgetown", "Round Rock", "Burnet", "Taylor", "Austin"];
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const $ = s => document.querySelector(s);
+$("#cause").innerHTML = CAUSES.map(c => `<option>${c}</option>`).join("");
+$("#town").innerHTML = TOWNS.map(t => `<option>${t}</option>`).join("");
+$("#days").innerHTML = DAYS.map(d => `<label><input type="checkbox" id="d-${d}"> ${d}</label>`).join("");
+try{ const t = localStorage.getItem("volunswipe_admin_token"); if(t){ $("#token").value = t; $("#remember").checked = true; } }catch(e){}
+
+function say(msg, ok){ const m = $("#msg"); m.textContent = msg; m.style.color = ok ? "var(--ok)" : "var(--bad)"; }
+
+function insertListing(src, e){
+  const start = src.indexOf("const LISTINGS = [");
+  const end = start < 0 ? -1 : src.indexOf("\n];", start);
+  if(end < 0) throw new Error("Could not find the LISTINGS list in index.html. Add this place by hand instead.");
+  const ids = [...src.slice(start, end).matchAll(/\bid:\s*(\d+)/g)].map(m => +m[1]);
+  const id = ids.length ? Math.max(...ids) + 1 : 1;
+  const line = "{id:" + id + ", org:" + JSON.stringify(e.org) + ", task:" + JSON.stringify(e.task) +
+    ", cause:" + JSON.stringify(e.cause) + ", town:" + JSON.stringify(e.town) + ", days:" + JSON.stringify(e.days) +
+    ", time:" + JSON.stringify(e.time) + ", hours:" + e.hours + ", minAge:" + e.minAge +
+    ", link:" + JSON.stringify(e.link) + ", verified:" + e.verified + "}";
+  const head = src.slice(0, end).replace(/\s+$/, "");
+  const comma = head.endsWith(",") || head.endsWith("[") ? "" : ",";
+  return {text: head + comma + "\n  " + line + src.slice(end), id};
+}
+function toB64(str){ let bin = ""; new TextEncoder().encode(str).forEach(b => bin += String.fromCharCode(b)); return btoa(bin); }
+function fromB64(b64){ const bin = atob(b64.replace(/\s/g, "")); return new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0))); }
+
+function readForm(){
+  const e = {
+    org: $("#org").value.trim(), task: $("#task").value.trim(), cause: $("#cause").value, town: $("#town").value,
+    days: DAYS.filter(d => $("#d-" + d).checked), time: $("#time").value.trim(),
+    hours: parseFloat($("#hours").value), minAge: parseInt($("#age").value, 10),
+    link: $("#link").value.trim(), verified: $("#verified").checked
+  };
+  if(!e.org || !e.task || !e.time) throw new Error("Fill in the organization, what the volunteer does, and the time.");
+  if(!e.days.length) throw new Error("Pick at least one day.");
+  if(!(e.hours > 0 && e.hours <= 24)) throw new Error("Hours must be between 0.5 and 24.");
+  if(!(e.minAge >= 5 && e.minAge <= 21)) throw new Error("Minimum age must be a number from 5 to 21.");
+  if(!/^https:\/\//i.test(e.link)) throw new Error("The link must start with https://");
+  return e;
+}
+
+async function addPlace(){
+  try{
+    const token = $("#token").value.trim(), repo = $("#repo").value.trim();
+    if(!token) throw new Error("Paste your GitHub token first.");
+    if(!/^[\w.-]+\/[\w.-]+$/.test(repo)) throw new Error("Repository should look like username/volunswipe.");
+    const e = readForm();
+    $("#go").disabled = true; say("Working...", true);
+    const url = "https://api.github.com/repos/" + repo + "/contents/index.html";
+    const h = {Authorization: "Bearer " + token, Accept: "application/vnd.github+json"};
+    const r = await fetch(url, {headers: h});
+    if(r.status === 401 || r.status === 403) throw new Error("GitHub rejected the token. It needs Contents: read and write on this repository.");
+    if(!r.ok) throw new Error("Could not read index.html (error " + r.status + "). Check the repository name.");
+    const file = await r.json();
+    const out = insertListing(fromB64(file.content), e);
+    const p = await fetch(url, {
+      method: "PUT", headers: Object.assign({"Content-Type": "application/json"}, h),
+      body: JSON.stringify({message: "Add place: " + e.org, content: toB64(out.text), sha: file.sha})
+    });
+    if(!p.ok) throw new Error("GitHub would not save the change (error " + p.status + "). Try again in a moment.");
+    try{ $("#remember").checked ? localStorage.setItem("volunswipe_admin_token", token) : localStorage.removeItem("volunswipe_admin_token"); }catch(x){}
+    say("Added " + e.org + " as place number " + out.id + ". It goes live in 1 to 2 minutes.", true);
+    ["org","task","time","link"].forEach(id => $("#" + id).value = "");
+    DAYS.forEach(d => $("#d-" + d).checked = false); $("#verified").checked = false;
+  }catch(err){ say(err.message, false); }
+  finally{ $("#go").disabled = false; }
+}
+</script>
+</body>
+</html>
