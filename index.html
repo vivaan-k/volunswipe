@@ -57,6 +57,7 @@ dt{color:var(--muted)}dd{margin:0}
 .small.ghost{background:none;border:1.5px solid var(--line);color:var(--muted)}
 .total{margin:4px 0 6px;color:var(--muted)}.total span{font:800 2.6rem "Bricolage Grotesque",sans-serif;color:var(--ink);margin-right:6px}
 .empty{padding:40px 0;text-align:center}
+.prefbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 12px;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:12px;font-size:.95rem}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -96,8 +97,7 @@ const LISTINGS = [
   {id:11, org:"Senior center", task:"Play games and visit with residents", cause:"Seniors", town:"Georgetown", days:["Wed","Fri"], time:"2pm to 4pm", hours:2, minAge:14, link:SITE, verified:false},
   {id:12, org:"Home-delivered meals route", task:"Deliver meals with an adult driver", cause:"Seniors", town:"Round Rock", days:["Mon","Fri"], time:"10am to 12pm", hours:2, minAge:16, link:SITE, verified:false},
   {id:13, org:"Neighborhood clothing closet", task:"Sort and organize donated clothes", cause:"Community", town:"Liberty Hill", days:["Sat"], time:"1pm to 4pm", hours:3, minAge:12, link:SITE, verified:false},
-  {id:14, org:"Community event team", task:"Set up and run a local festival booth", cause:"Community", town:"Burnet", days:["Sat","Sun"], time:"10am to 2pm", hours:4, minAge:13, link:SITE, verified:false},
-  {id:15, org:"ma", task:"am", cause:"Environment", town:"Cedar Park", days:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"], time:"10am", hours:10, minAge:15, link:"https://lebron.com", verified:true}
+  {id:14, org:"Community event team", task:"Set up and run a local festival booth", cause:"Community", town:"Burnet", days:["Sat","Sun"], time:"10am to 2pm", hours:4, minAge:13, link:SITE, verified:false}
 ];
 
 /* ============ STATE (saved only in this browser) ============ */
@@ -143,11 +143,14 @@ function deck(){
 /* ============ SCREENS ============ */
 function render(){
   if(!state.prefs) tab = "settings";
-  $("#tabs").innerHTML = [["discover","Discover"],["matches","Matches ("+state.saved.length+")"],["hours","Hours"],["settings","Settings"]]
+  $("#tabs").innerHTML = [["discover","Discover"],["matches","Matches ("+savedItems().length+")"],["hours","Hours"],["settings","Preferences"]]
     .map(([k,n]) => `<button class="${tab===k?"on":""}" onclick="go('${k}')" ${!state.prefs && k!=="settings" ? "disabled" : ""}>${n}</button>`).join("");
   ({discover:viewDiscover, matches:viewMatches, hours:viewHours, settings:viewSettings})[tab]();
 }
-function go(t){ tab = t; render(); }
+function go(t){ if(t !== "settings") draft = null; tab = t; render(); }
+function savedItems(){ return state.saved.map(id => LISTINGS.find(l => l.id === id)).filter(Boolean); }
+function showSkipped(){ state.seen = []; draft = null; save(); go("discover"); }
+function cancelSettings(){ draft = null; go("discover"); }
 
 function viewSettings(){
   if(!draft) draft = JSON.parse(JSON.stringify(state.prefs || {causes:[], days:[], town:"Liberty Hill", maxMiles:15}));
@@ -164,7 +167,7 @@ function viewSettings(){
     <select id="mi" onchange="draft.maxMiles=+this.value">${[5,10,15,25,40].map(m => `<option value="${m}" ${m===draft.maxMiles?"selected":""}>${m} miles</option>`).join("")}</select>
     <p id="err" class="err" role="alert"></p>
     <button class="primary" onclick="savePrefs()">Save and start swiping</button>
-    ${state.prefs ? '<button class="link" onclick="resetAll(this)">Erase all my data</button>' : ""}`;
+    ${state.prefs ? '<div><button class="link" onclick="cancelSettings()">Cancel</button></div><div><button class="link" onclick="showSkipped()">Show skipped places again</button></div><div><button class="link" onclick="resetAll(this)">Erase all my data</button></div>' : ""}`;
 }
 function chip(k, v){ return `<button class="chip ${draft[k].includes(v)?"on":""}" aria-pressed="${draft[k].includes(v)}" onclick="toggle('${k}','${v}')">${v}</button>`; }
 function toggle(k, v){ const a = draft[k], i = a.indexOf(v); i < 0 ? a.push(v) : a.splice(i, 1); viewSettings(); }
@@ -181,11 +184,15 @@ function viewDiscover(){
   const d = deck();
   if(!d.length){
     current = null;
-    $("#view").innerHTML = `<div class="empty"><h2>You have seen everything nearby</h2><p class="muted">Raise your travel distance or add more days in Settings, or check your Matches.</p></div>`;
+    $("#view").innerHTML = `<div class="empty"><h2>You have seen everything nearby</h2><p class="muted">Change your preferences to widen the search, or bring back the places you skipped.</p>
+      <button class="primary" onclick="go('settings')">Change my preferences</button>
+      <button class="link" onclick="showSkipped()">Show skipped places again</button></div>`;
     return;
   }
   const {l, s} = d[0]; current = l;
+  const p = state.prefs;
   $("#view").innerHTML = `
+    <div class="prefbar"><span>${esc(p.causes.join(", "))} within ${p.maxMiles} miles of ${esc(p.town)}</span><button class="small ghost" onclick="go('settings')">Change</button></div>
     <div class="stack">
       <article class="card" id="card" aria-label="${esc(l.org)}">
         <div class="band" style="background:${CAUSE_COLOR[l.cause]}"><span>${l.cause}</span><span>${s.total}% match</span></div>
@@ -243,7 +250,7 @@ document.addEventListener("keydown", e => {
 });
 
 function viewMatches(){
-  const items = state.saved.map(id => LISTINGS.find(l => l.id === id)).filter(Boolean);
+  const items = savedItems();
   $("#view").innerHTML = "<h2>My matches</h2>" + (items.length ? items.map(l => `
     <div class="row">
       <div>
