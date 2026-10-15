@@ -22,7 +22,9 @@ input,select{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-
 .check input{width:auto}
 button{width:100%;margin-top:20px;padding:14px;border:0;border-radius:12px;background:var(--blue);color:#fff;font:700 1rem system-ui,sans-serif;cursor:pointer}
 button:disabled{opacity:.5}
-#msg{min-height:1.5em;margin-top:14px;font-weight:700}
+button.alt{background:var(--card);color:var(--blue);border:1.5px solid var(--blue)}
+button.danger{background:var(--bad)}
+.msg{min-height:1.5em;margin-top:14px;font-weight:700}
 </style>
 </head>
 <body>
@@ -50,7 +52,15 @@ button:disabled{opacity:.5}
   <label class="check"><input id="verified" type="checkbox"> I confirmed these details with the organization</label>
 
   <button id="go" onclick="addPlace()">Add place</button>
-  <p id="msg" role="status"></p>
+  <p id="msg" class="msg" role="status"></p>
+
+  <h2>Remove a place</h2>
+  <p class="muted">Load the current places, pick one, and remove it from the app.</p>
+  <button class="alt" id="load" onclick="loadPlaces()">Load current places</button>
+  <label for="rm">Place</label>
+  <select id="rm"></select>
+  <button class="danger" id="rmgo" onclick="removePlace(this)">Remove selected place</button>
+  <p id="msg2" class="msg" role="status"></p>
 </main>
 
 <script>
@@ -58,19 +68,22 @@ const CAUSES = ["Food", "Animals", "Environment", "Education", "Seniors", "Commu
 const TOWNS = ["Liberty Hill", "Leander", "Cedar Park", "Georgetown", "Round Rock", "Burnet", "Taylor", "Austin"];
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const $ = s => document.querySelector(s);
+const KEY = "volunswipe_admin_token";
 $("#cause").innerHTML = CAUSES.map(c => `<option>${c}</option>`).join("");
 $("#town").innerHTML = TOWNS.map(t => `<option>${t}</option>`).join("");
 $("#days").innerHTML = DAYS.map(d => `<label><input type="checkbox" id="d-${d}"> ${d}</label>`).join("");
-try{ const t = localStorage.getItem("volunswipe_admin_token"); if(t){ $("#token").value = t; $("#remember").checked = true; } }catch(e){}
+try{ const t = localStorage.getItem(KEY); if(t){ $("#token").value = t; $("#remember").checked = true; } }catch(e){}
 
-function say(msg, ok){ const m = $("#msg"); m.textContent = msg; m.style.color = ok ? "var(--ok)" : "var(--bad)"; }
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function say(msg, ok, id){ const m = $("#" + (id || "msg")); m.textContent = msg; m.style.color = ok ? "var(--ok)" : "var(--bad)"; }
 
 function insertListing(src, e){
   const start = src.indexOf("const LISTINGS = [");
   const end = start < 0 ? -1 : src.indexOf("\n];", start);
   if(end < 0) throw new Error("Could not find the LISTINGS list in index.html. Add this place by hand instead.");
   const ids = [...src.slice(start, end).matchAll(/\bid:\s*(\d+)/g)].map(m => +m[1]);
-  const id = ids.length ? Math.max(...ids) + 1 : 1;
+  // Ids are never reused, even after a place is removed.
+  const id = Math.max(Math.floor(Date.now() / 1000), (ids.length ? Math.max(...ids) : 0) + 1);
   const line = "{id:" + id + ", org:" + JSON.stringify(e.org) + ", task:" + JSON.stringify(e.task) +
     ", cause:" + JSON.stringify(e.cause) + ", town:" + JSON.stringify(e.town) + ", days:" + JSON.stringify(e.days) +
     ", time:" + JSON.stringify(e.time) + ", hours:" + e.hours + ", minAge:" + e.minAge +
@@ -78,6 +91,22 @@ function insertListing(src, e){
   const head = src.slice(0, end).replace(/\s+$/, "");
   const comma = head.endsWith(",") || head.endsWith("[") ? "" : ",";
   return {text: head + comma + "\n  " + line + src.slice(end), id};
+}
+function listPlaces(src){
+  const start = src.indexOf("const LISTINGS = [");
+  const end = start < 0 ? -1 : src.indexOf("\n];", start);
+  if(end < 0) throw new Error("Could not find the LISTINGS list in index.html.");
+  return [...src.slice(start, end).matchAll(/^\s*\{id:\s*(\d+)\s*,\s*org:\s*("(?:[^"\\]|\\.)*")/gm)].map(m => ({id: +m[1], org: JSON.parse(m[2])}));
+}
+function removeListing(src, id){
+  const start = src.indexOf("const LISTINGS = [");
+  const end = start < 0 ? -1 : src.indexOf("\n];", start);
+  if(end < 0) throw new Error("Could not find the LISTINGS list in index.html.");
+  const lines = src.slice(start, end).split("\n");
+  const re = new RegExp("^\\s*\\{id:\\s*" + Number(id) + "\\s*,");
+  const keep = lines.filter(l => !re.test(l));
+  if(keep.length === lines.length) throw new Error("That place was not found. Load the places again.");
+  return src.slice(0, start) + keep.join("\n") + src.slice(end);
 }
 function toB64(str){ let bin = ""; new TextEncoder().encode(str).forEach(b => bin += String.fromCharCode(b)); return btoa(bin); }
 function fromB64(b64){ const bin = atob(b64.replace(/\s/g, "")); return new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0))); }
@@ -97,31 +126,74 @@ function readForm(){
   return e;
 }
 
+function conn(){
+  const token = $("#token").value.trim(), repo = $("#repo").value.trim();
+  if(!token) throw new Error("Paste your GitHub token first.");
+  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)) throw new Error("Repository should look like username/volunswipe.");
+  return {token, url: "https://api.github.com/repos/" + repo + "/contents/index.html",
+          h: {Authorization: "Bearer " + token, Accept: "application/vnd.github+json"}};
+}
+async function getFile(c){
+  const r = await fetch(c.url, {headers: c.h});
+  if(r.status === 401 || r.status === 403) throw new Error("GitHub rejected the token. It needs Contents: read and write on this repository.");
+  if(!r.ok) throw new Error("Could not read index.html (error " + r.status + "). Check the repository name.");
+  const f = await r.json();
+  return {sha: f.sha, text: fromB64(f.content)};
+}
+async function putFile(c, text, sha, message){
+  const p = await fetch(c.url, {method: "PUT", headers: Object.assign({"Content-Type": "application/json"}, c.h),
+    body: JSON.stringify({message, content: toB64(text), sha})});
+  if(!p.ok) throw new Error("GitHub would not save the change (error " + p.status + "). Try again in a moment.");
+}
+function rememberToken(c){ try{ $("#remember").checked ? localStorage.setItem(KEY, c.token) : localStorage.removeItem(KEY); }catch(x){} }
+function fillPlaces(list){ $("#rm").innerHTML = list.map(p => `<option value="${p.id}">${esc(p.org)}</option>`).join(""); }
+
 async function addPlace(){
   try{
-    const token = $("#token").value.trim(), repo = $("#repo").value.trim();
-    if(!token) throw new Error("Paste your GitHub token first.");
-    if(!/^[\w.-]+\/[\w.-]+$/.test(repo)) throw new Error("Repository should look like username/volunswipe.");
-    const e = readForm();
+    const c = conn(), e = readForm();
     $("#go").disabled = true; say("Working...", true);
-    const url = "https://api.github.com/repos/" + repo + "/contents/index.html";
-    const h = {Authorization: "Bearer " + token, Accept: "application/vnd.github+json"};
-    const r = await fetch(url, {headers: h});
-    if(r.status === 401 || r.status === 403) throw new Error("GitHub rejected the token. It needs Contents: read and write on this repository.");
-    if(!r.ok) throw new Error("Could not read index.html (error " + r.status + "). Check the repository name.");
-    const file = await r.json();
-    const out = insertListing(fromB64(file.content), e);
-    const p = await fetch(url, {
-      method: "PUT", headers: Object.assign({"Content-Type": "application/json"}, h),
-      body: JSON.stringify({message: "Add place: " + e.org, content: toB64(out.text), sha: file.sha})
-    });
-    if(!p.ok) throw new Error("GitHub would not save the change (error " + p.status + "). Try again in a moment.");
-    try{ $("#remember").checked ? localStorage.setItem("volunswipe_admin_token", token) : localStorage.removeItem("volunswipe_admin_token"); }catch(x){}
-    say("Added " + e.org + " as place number " + out.id + ". It goes live in 1 to 2 minutes.", true);
+    const f = await getFile(c);
+    const out = insertListing(f.text, e);
+    await putFile(c, out.text, f.sha, "Add place: " + e.org);
+    rememberToken(c);
+    say("Added " + e.org + ". It goes live in 1 to 2 minutes.", true);
     ["org","task","time","link"].forEach(id => $("#" + id).value = "");
     DAYS.forEach(d => $("#d-" + d).checked = false); $("#verified").checked = false;
+    if($("#rm").options.length) fillPlaces(listPlaces(out.text));
   }catch(err){ say(err.message, false); }
   finally{ $("#go").disabled = false; }
+}
+
+async function loadPlaces(){
+  try{
+    const c = conn(); say("Loading...", true, "msg2");
+    const list = listPlaces((await getFile(c)).text);
+    fillPlaces(list); rememberToken(c);
+    say(list.length + " places loaded.", true, "msg2");
+  }catch(err){ say(err.message, false, "msg2"); }
+}
+
+let rmArmed = false;
+async function removePlace(btn){
+  const id = $("#rm").value;
+  if(!id){ say("Load the places first, then pick one.", false, "msg2"); return; }
+  if(!rmArmed){
+    rmArmed = true; btn.textContent = "Tap again to remove this place";
+    setTimeout(() => { rmArmed = false; btn.textContent = "Remove selected place"; }, 4000);
+    return;
+  }
+  rmArmed = false; btn.textContent = "Remove selected place";
+  try{
+    const c = conn(); btn.disabled = true; say("Working...", true, "msg2");
+    const f = await getFile(c);
+    const place = listPlaces(f.text).find(p => String(p.id) === id);
+    const text = removeListing(f.text, id);
+    await putFile(c, text, f.sha, "Remove place: " + (place ? place.org : id));
+    rememberToken(c);
+    fillPlaces(listPlaces(text));
+    say("Removed " + (place ? place.org : "the place") + ". The app updates in 1 to 2 minutes.", true, "msg2");
+  }catch(err){ say(err.message, false, "msg2"); }
+  finally{ btn.disabled = false; }
 }
 </script>
 </body>
