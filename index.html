@@ -2,111 +2,126 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>VolunSwipe: volunteering that fits your week</title>
-<meta name="theme-color" content="#3b4cca">
+<meta name="theme-color" content="#2a3aa8">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:wght@600;800&display=swap">
 <style>
-:root{--bg:#f3f5f9;--card:#fff;--ink:#14213d;--muted:#5b667a;--line:#dde2ec;--blue:#3b4cca;--save:#1f8a57;--skip:#c2410c}
-@media(prefers-color-scheme:dark){:root{--bg:#0f1420;--card:#192032;--ink:#edf0f7;--muted:#9aa5bb;--line:#2a344b;--blue:#8c99f5}}
+:root{--bg:#eef1fa;--glow:#cdd6ff;--card:#fff;--ink:#14213d;--muted:#5b667a;--line:#dde2ec;--blue:#2a3aa8;--btn:#3547c9;--save:#1f8a57;--skip:#c2410c}
+@media(prefers-color-scheme:dark){:root{--bg:#0c111d;--glow:#1a2352;--card:#171e30;--ink:#edf0f7;--muted:#9aa5bb;--line:#2a344b;--blue:#8c99f5}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 "Atkinson Hyperlegible",system-ui,sans-serif;padding-bottom:84px}
+body{margin:0;min-height:100vh;background:radial-gradient(120% 50% at 50% 0,var(--glow),transparent 70%) var(--bg) no-repeat;color:var(--ink);font:17px/1.5 "Atkinson Hyperlegible",system-ui,sans-serif;padding-bottom:104px}
 h1,h2{font-family:"Bricolage Grotesque",system-ui,sans-serif;line-height:1.15;margin:0 0 .4em}
-header,main{max-width:480px;margin:0 auto;padding:0 18px}
-header{padding-top:20px}
-h1{font-size:1.7rem;font-weight:800}
-header p{margin:0 0 14px;color:var(--muted)}
 h2{font-size:1.35rem}
+.top{background:linear-gradient(135deg,#2a3aa8,#5b4fd0);color:#fff;padding:calc(16px + env(safe-area-inset-top,0px)) 20px 58px;border-radius:0 0 30px 30px}
+.top>*{max-width:480px;margin-left:auto;margin-right:auto}
+.brand{display:flex;align-items:center;gap:10px}
+h1{margin:0;font-size:1.6rem;font-weight:800;flex:1}
+.logo{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:#fff;color:#e0457b;font-size:1.2rem}
+.about{width:38px;height:38px;border-radius:50%;border:1.5px solid rgba(255,255,255,.6);background:none;color:#fff;font-weight:800}
+.top p{margin:8px auto 0;opacity:.92}
+main{position:relative;max-width:480px;margin:-36px auto 0;padding:0 16px}
+.panel{background:var(--card);border-radius:22px;padding:20px;box-shadow:0 10px 30px rgba(20,33,61,.1)}
 .muted{color:var(--muted)}.center{text-align:center}
 button,input,select{font:inherit;color:inherit}
-button{cursor:pointer}
+button,.sm{cursor:pointer}
 :focus-visible{outline:3px solid var(--blue);outline-offset:2px}
 label{display:block;font-weight:700;margin:16px 0 6px}
-input,select{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--card)}
+input,select{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--card)}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{padding:8px 14px;border:1.5px solid var(--line);border-radius:99px;background:var(--card)}
-.chip.on{background:var(--blue);border-color:var(--blue);color:#fff}
-.primary{width:100%;margin-top:18px;padding:14px;border:0;border-radius:12px;background:var(--blue);color:#fff;font-weight:700}
-.link{background:none;border:0;color:var(--muted);text-decoration:underline;margin-top:14px;padding:6px 0}
+.chip{padding:9px 15px;border:1.5px solid var(--line);border-radius:99px;background:var(--card)}
+.chip.on{background:var(--btn);border-color:var(--btn);color:#fff}
+.primary{width:100%;margin-top:14px;padding:14px;border:0;border-radius:14px;background:linear-gradient(135deg,#2a3aa8,#5b4fd0);color:#fff;font-weight:700;box-shadow:0 6px 16px rgba(42,58,168,.3)}
+.primary.alt{background:var(--card);color:var(--blue);border:1.5px solid var(--btn);box-shadow:none}
+.link{background:none;border:0;color:var(--muted);text-decoration:underline;margin-top:10px;padding:6px 0}
 .err{color:var(--skip);min-height:1.4em;margin:8px 0 0}
-nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0)}
-nav button{flex:1;padding:16px 4px;border:0;background:none;color:var(--muted);font-weight:700}
-nav button.on{color:var(--blue);box-shadow:inset 0 3px 0 var(--blue)}
-nav button:disabled{opacity:.4;cursor:default}
-.stack{position:relative;margin-top:6px;touch-action:pan-y}
-.card{position:relative;background:var(--card);border-radius:20px;overflow:hidden;border:1px solid var(--line);box-shadow:0 10px 30px rgba(20,33,61,.12);user-select:none;cursor:grab}
-.band{display:flex;justify-content:space-between;padding:12px 18px;color:#fff;font-weight:700}
-.body{padding:18px}
-.body h2{font-size:1.5rem}
+nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom,0px));width:calc(100% - 24px);max-width:456px;display:flex;gap:4px;padding:6px;background:var(--card);border-radius:20px;box-shadow:0 8px 30px rgba(20,33,61,.22)}
+nav button{flex:1;padding:12px 2px;border:0;border-radius:14px;background:none;color:var(--muted);font-weight:700;font-size:.92rem}
+nav button.on{background:var(--btn);color:#fff}
+nav button:disabled{opacity:.4}
+.stack{position:relative;touch-action:pan-y}
+.stack:before{content:"";position:absolute;inset:14px 10px -10px;background:var(--card);border-radius:24px;opacity:.55;z-index:-1}
+.card{position:relative;background:var(--card);border-radius:24px;overflow:hidden;box-shadow:0 16px 40px rgba(20,33,61,.2);user-select:none;cursor:grab}
+.band{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;color:#fff;background-image:linear-gradient(135deg,rgba(255,255,255,.2),transparent)}
+.band b{font:800 1.1rem "Bricolage Grotesque",sans-serif}
+.ring{width:60px;height:60px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#fff calc(var(--p)*1%),rgba(255,255,255,.3) 0)}
+.ring i{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:var(--c);font:800 .95rem "Bricolage Grotesque",sans-serif}
+.body{padding:20px}
+.body h2{font-size:1.55rem}
 .task{margin:0 0 14px;font-size:1.05rem}
-dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0 0 14px}
-dt{color:var(--muted)}dd{margin:0}
-.why{margin:0;padding:12px 16px;list-style:none;background:var(--bg);border-radius:12px}
-.why li+li{margin-top:4px}
-.tag{display:inline-block;margin-top:12px;padding:3px 10px;border:1.5px dashed var(--muted);border-radius:8px;color:var(--muted);font-size:.9rem}
-.stamp{position:absolute;top:70px;padding:4px 14px;border:3px solid;border-radius:10px;font:800 1.5rem "Bricolage Grotesque",sans-serif;opacity:0;transform:rotate(-8deg);pointer-events:none}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.facts div{background:var(--bg);border-radius:14px;padding:9px 12px;line-height:1.35}
+.facts small{display:block;color:var(--muted);font-size:.8rem}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{padding:4px 11px;border-radius:99px;background:var(--bg);font-size:.88rem}
+.pill.ok{background:rgba(31,138,87,.15);color:var(--save)}
+.tag{display:inline-block;margin-top:12px;padding:3px 10px;border:1.5px dashed var(--muted);border-radius:8px;color:var(--muted);font-size:.88rem}
+.tag.ok{border:1.5px solid var(--save);color:var(--save)}
+.stamp{position:absolute;top:84px;padding:4px 14px;border:3px solid;border-radius:10px;font:800 1.5rem "Bricolage Grotesque",sans-serif;opacity:0;transform:rotate(-8deg);pointer-events:none;background:var(--card)}
 .stamp.save{left:18px;color:var(--save)}.stamp.skip{right:18px;color:var(--skip);transform:rotate(8deg)}
 .card[data-dir=save] .stamp.save,.card[data-dir=skip] .stamp.skip{opacity:1}
-.actions{display:flex;justify-content:center;gap:34px;margin:22px 0 10px}
-.round{width:68px;height:68px;border-radius:50%;border:2.5px solid;background:var(--card);font-size:1.6rem}
+.actions{display:flex;justify-content:center;align-items:center;gap:26px;margin:24px 0 10px}
+.round{width:70px;height:70px;border-radius:50%;border:0;background:var(--card);font-size:1.6rem;box-shadow:0 8px 20px rgba(20,33,61,.18)}
 .round.skip{color:var(--skip)}.round.yes{color:var(--save)}
-.row{display:flex;justify-content:space-between;gap:12px;padding:14px;margin-bottom:10px;background:var(--card);border:1px solid var(--line);border-radius:14px}
-.row a{color:var(--blue);font-weight:700}
-.col{display:flex;flex-direction:column;gap:8px}
-.small{padding:8px 12px;border-radius:9px;border:0;background:var(--blue);color:#fff;font-weight:700}
-.small.ghost{background:none;border:1.5px solid var(--line);color:var(--muted)}
-.total{margin:4px 0 6px;color:var(--muted)}.total span{font:800 2.6rem "Bricolage Grotesque",sans-serif;color:var(--ink);margin-right:6px}
-.empty{padding:40px 0;text-align:center}
-.prefbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 12px;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:12px;font-size:.95rem}
+.mini{width:46px;height:46px;border-radius:50%;border:0;background:var(--card);font-size:1.3rem;box-shadow:0 6px 14px rgba(20,33,61,.15)}
+.mini:disabled{opacity:.35}
+.prefbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 14px;padding:10px 12px 10px 16px;background:var(--card);border-radius:16px;font-size:.95rem;box-shadow:0 6px 18px rgba(20,33,61,.1)}
+.hint{display:flex;gap:12px;align-items:center;margin:0 0 14px;padding:12px 14px;background:#fff3c4;color:#4a3b00;border-radius:14px;font-size:.95rem}
+.row{display:flex;flex-direction:column;gap:10px;padding:14px;margin-bottom:12px;background:var(--bg);border-left:6px solid var(--c);border-radius:14px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.sm{display:inline-block;padding:8px 13px;border-radius:10px;border:0;background:var(--btn);color:#fff;font-weight:700;font-size:.92rem;text-decoration:none}
+.sm.ghost{background:none;border:1.5px solid var(--line);color:var(--muted)}
+.total{margin:4px 0 6px;color:var(--muted)}.total span{font:800 2.8rem "Bricolage Grotesque",sans-serif;color:var(--ink);margin-right:8px}
+.empty{padding:36px 0;text-align:center}
+#sheet{display:none}
+@media print{body{background:#fff}body>*:not(#sheet){display:none!important}#sheet{display:block;color:#000;padding:24px;font:14px/1.6 system-ui,sans-serif}#sheet table{width:100%;border-collapse:collapse}#sheet td,#sheet th{border:1px solid #444;padding:10px;text-align:left}#sheet td:last-child{width:34%}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<header>
-  <h1>VolunSwipe</h1>
+<header class="top">
+  <div class="brand"><span class="logo">♥</span><h1>VolunSwipe</h1><button class="about" onclick="go('about')" aria-label="How VolunSwipe works">?</button></div>
   <p>Swipe right on volunteering that fits your week.</p>
 </header>
 <main id="view"></main>
+<div id="sheet"></div>
 <nav id="tabs" aria-label="Main"></nav>
 
 <script>
 /* ============ DATA ============
-   EDIT THIS SECTION: replace the sample listings with real, verified ones.
-   Set verified:true once you have confirmed the details with the organization. */
+   The admin page adds and removes places in the list below.
+   To show a confirmation date on a card, add checked:"2026-10-20" to that place. */
 const CAUSES = ["Food", "Animals", "Environment", "Education", "Seniors", "Community"];
-const CAUSE_COLOR = {Food:"#b84c14", Animals:"#2b7a6a", Environment:"#4d7c0f", Education:"#3b4cca", Seniors:"#a3366b", Community:"#0e7490"};
+const CC = {Food:"#b84c14", Animals:"#2b7a6a", Environment:"#4d7c0f", Education:"#3b4cca", Seniors:"#a3366b", Community:"#0e7490"};
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 // Approximate town centers (latitude, longitude), used only to estimate distance. No GPS is used.
-const TOWNS = {
-  "Liberty Hill":[30.664,-97.923], "Leander":[30.579,-97.853], "Cedar Park":[30.505,-97.820],
-  "Georgetown":[30.633,-97.678], "Round Rock":[30.508,-97.679], "Burnet":[30.758,-98.228],
-  "Taylor":[30.571,-97.409], "Austin":[30.267,-97.743]
-};
-const SITE = "https://example.org"; // replace with each organization's real sign-up page
+const TOWNS = {"Liberty Hill":[30.664,-97.923], "Leander":[30.579,-97.853], "Cedar Park":[30.505,-97.820], "Georgetown":[30.633,-97.678], "Round Rock":[30.508,-97.679], "Burnet":[30.758,-98.228], "Taylor":[30.571,-97.409], "Austin":[30.267,-97.743]};
+const SITE = "https://example.org";
+const REPORT_EMAIL = ""; // put your email between the quotes to show a "Report a problem" link
 const LISTINGS = [
-  {id:1, org:"Community food pantry", task:"Sort donations and pack grocery boxes", cause:"Food", town:"Georgetown", days:["Sat"], time:"9am to 12pm", hours:3, minAge:14, link:SITE, verified:false},
-  {id:2, org:"Regional food bank warehouse", task:"Help volunteers pack produce", cause:"Food", town:"Austin", days:["Tue","Thu"], time:"4pm to 7pm", hours:3, minAge:16, link:SITE, verified:false},
-  {id:3, org:"Weekend meal program", task:"Serve and clean up at a community meal", cause:"Food", town:"Leander", days:["Sun"], time:"11am to 2pm", hours:3, minAge:13, link:SITE, verified:false},
-  {id:4, org:"Animal shelter", task:"Walk dogs and socialize cats", cause:"Animals", town:"Georgetown", days:["Sat","Sun"], time:"10am to 1pm", hours:3, minAge:14, link:SITE, verified:false},
-  {id:5, org:"Rescue group", task:"Help at adoption events", cause:"Animals", town:"Cedar Park", days:["Sat"], time:"11am to 3pm", hours:4, minAge:13, link:SITE, verified:false},
-  {id:6, org:"County park", task:"Trail cleanup and litter pickup", cause:"Environment", town:"Liberty Hill", days:["Sat"], time:"8am to 11am", hours:3, minAge:12, link:SITE, verified:false},
-  {id:7, org:"Native plant group", task:"Plant and water native species", cause:"Environment", town:"Round Rock", days:["Sun"], time:"9am to 12pm", hours:3, minAge:12, link:SITE, verified:false},
-  {id:8, org:"Creek cleanup crew", task:"Collect trash along the creek", cause:"Environment", town:"Leander", days:["Sat"], time:"9am to 11am", hours:2, minAge:10, link:SITE, verified:false},
-  {id:9, org:"Public library", task:"Help kids with summer reading", cause:"Education", town:"Liberty Hill", days:["Mon","Wed"], time:"3:30pm to 5pm", hours:1.5, minAge:14, link:SITE, verified:false},
-  {id:10, org:"After-school tutoring program", task:"Tutor elementary students in math", cause:"Education", town:"Cedar Park", days:["Tue","Thu"], time:"4pm to 6pm", hours:2, minAge:15, link:SITE, verified:false},
-  {id:11, org:"Senior center", task:"Play games and visit with residents", cause:"Seniors", town:"Georgetown", days:["Wed","Fri"], time:"2pm to 4pm", hours:2, minAge:14, link:SITE, verified:false},
-  {id:12, org:"Home-delivered meals route", task:"Deliver meals with an adult driver", cause:"Seniors", town:"Round Rock", days:["Mon","Fri"], time:"10am to 12pm", hours:2, minAge:16, link:SITE, verified:false},
-  {id:13, org:"Neighborhood clothing closet", task:"Sort and organize donated clothes", cause:"Community", town:"Liberty Hill", days:["Sat"], time:"1pm to 4pm", hours:3, minAge:12, link:SITE, verified:false},
-  {id:14, org:"Community event team", task:"Set up and run a local festival booth", cause:"Community", town:"Burnet", days:["Sat","Sun"], time:"10am to 2pm", hours:4, minAge:13, link:SITE, verified:false}
+  {id:1,org:"Community food pantry",task:"Sort donations and pack grocery boxes",cause:"Food",town:"Georgetown",days:["Sat"],time:"9am to 12pm",hours:3,minAge:14,link:SITE,verified:false},
+  {id:2,org:"Regional food bank warehouse",task:"Help volunteers pack produce",cause:"Food",town:"Austin",days:["Tue","Thu"],time:"4pm to 7pm",hours:3,minAge:16,link:SITE,verified:false},
+  {id:4,org:"Animal shelter",task:"Walk dogs and socialize cats",cause:"Animals",town:"Georgetown",days:["Sat","Sun"],time:"10am to 1pm",hours:3,minAge:14,link:SITE,verified:false},
+  {id:5,org:"Rescue group",task:"Help at adoption events",cause:"Animals",town:"Cedar Park",days:["Sat"],time:"11am to 3pm",hours:4,minAge:13,link:SITE,verified:false},
+  {id:6,org:"County park",task:"Trail cleanup and litter pickup",cause:"Environment",town:"Liberty Hill",days:["Sat"],time:"8am to 11am",hours:3,minAge:12,link:SITE,verified:false},
+  {id:8,org:"Creek cleanup crew",task:"Collect trash along the creek",cause:"Environment",town:"Leander",days:["Sat"],time:"9am to 11am",hours:2,minAge:10,link:SITE,verified:false},
+  {id:9,org:"Public library",task:"Help kids with summer reading",cause:"Education",town:"Liberty Hill",days:["Mon","Wed"],time:"3:30pm to 5pm",hours:1.5,minAge:14,link:SITE,verified:false},
+  {id:10,org:"After-school tutoring program",task:"Tutor elementary students in math",cause:"Education",town:"Cedar Park",days:["Tue","Thu"],time:"4pm to 6pm",hours:2,minAge:15,link:SITE,verified:false},
+  {id:11,org:"Senior center",task:"Play games and visit with residents",cause:"Seniors",town:"Georgetown",days:["Wed","Fri"],time:"2pm to 4pm",hours:2,minAge:14,link:SITE,verified:false},
+  {id:13,org:"Neighborhood clothing closet",task:"Sort and organize donated clothes",cause:"Community",town:"Liberty Hill",days:["Sat"],time:"1pm to 4pm",hours:3,minAge:12,link:SITE,verified:false}
 ];
 
 /* ============ STATE (saved only in this browser) ============ */
-let state = {prefs:null, seen:[], saved:[], hours:[]};
+let state = {prefs:null, seen:[], saved:[], hours:[], hist:[], hinted:false};
 let tab = "discover", draft = null, prefillOrg = "", current = null, armed = false;
 function load(){ try{ const s = localStorage.getItem("volunswipe"); if(s) state = Object.assign(state, JSON.parse(s)); }catch(e){} }
 function save(){ try{ localStorage.setItem("volunswipe", JSON.stringify(state)); }catch(e){} }
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const put = (h, panel = 1) => $("#view").innerHTML = panel ? `<section class="panel">${h}</section>` : h;
+const fmt = d => new Date(d + "T12:00").toLocaleDateString("en-US", {month:"short", day:"numeric"});
+const tag = l => l.verified ? `<span class="tag ok">Confirmed${l.checked ? " " + fmt(l.checked) : ""}</span>` : '<span class="tag">Not yet confirmed</span>';
+const maps = l => "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(l.org + ", " + l.town + ", TX");
 
 /* ============ MATCHING ALGORITHM ============
    Each listing gets a score out of 100:
@@ -123,15 +138,13 @@ function miles(a, b){
 function score(l, p){
   const d = miles(TOWNS[p.town], TOWNS[l.town]);
   const shared = l.days.filter(x => p.days.includes(x));
-  const causePts = p.causes.includes(l.cause) ? 40 : 0;
-  const distPts = Math.max(0, 30 * (1 - d / p.maxMiles));
-  const dayPts = 30 * shared.length / l.days.length;
-  const why = [
-    p.causes.includes(l.cause) ? "Matches your interest in " + l.cause.toLowerCase() : l.cause + " is not one of your picks",
-    d < 1 ? "In your town" : Math.round(d) + " miles from " + p.town,
-    shared.length ? "Open " + shared.join(" and ") + ", when you are free" : "Not on your free days"
-  ];
-  return {total: Math.round(causePts + distPts + dayPts), d: Math.round(d), why};
+  const okCause = p.causes.includes(l.cause);
+  const total = (okCause ? 40 : 0) + Math.max(0, 30 * (1 - d / p.maxMiles)) + 30 * shared.length / l.days.length;
+  return {total: Math.round(total), d: Math.round(d), why: [
+    [okCause ? "Matches your interest in " + l.cause.toLowerCase() : l.cause + " is not one of your picks", okCause],
+    [d < 1 ? "In your town" : Math.round(d) + " miles from " + p.town, d <= p.maxMiles / 2],
+    [shared.length ? "Open " + shared.join(" and ") + ", when you are free" : "Not on your free days", shared.length > 0]
+  ]};
 }
 function deck(){
   const p = state.prefs;
@@ -142,19 +155,25 @@ function deck(){
 
 /* ============ SCREENS ============ */
 function render(){
-  if(!state.prefs) tab = "settings";
+  if(!state.prefs && tab !== "about") tab = "settings";
   $("#tabs").innerHTML = [["discover","Discover"],["matches","Matches ("+savedItems().length+")"],["hours","Hours"],["settings","Preferences"]]
-    .map(([k,n]) => `<button class="${tab===k?"on":""}" onclick="go('${k}')" ${!state.prefs && k!=="settings" ? "disabled" : ""}>${n}</button>`).join("");
-  ({discover:viewDiscover, matches:viewMatches, hours:viewHours, settings:viewSettings})[tab]();
+    .map(([k,n]) => `<button class="${tab===k?"on":""}" onclick="go('${k}')" ${!state.prefs ? "disabled" : ""}>${n}</button>`).join("");
+  ({discover:viewDiscover, matches:viewMatches, hours:viewHours, settings:viewSettings, about:viewAbout})[tab]();
+  window.scrollTo(0, 0);
 }
 function go(t){ if(t !== "settings") draft = null; tab = t; render(); }
 function savedItems(){ return state.saved.map(id => LISTINGS.find(l => l.id === id)).filter(Boolean); }
-function showSkipped(){ state.seen = []; draft = null; save(); go("discover"); }
+function showSkipped(){ state.seen = []; state.hist = []; draft = null; save(); go("discover"); }
 function cancelSettings(){ draft = null; go("discover"); }
+function hideHint(){ state.hinted = true; save(); render(); }
+function undo(){
+  const id = state.hist.pop(); if(id === undefined) return;
+  state.saved = state.saved.filter(x => x !== id); state.seen = state.seen.filter(x => x !== id); save(); render();
+}
 
 function viewSettings(){
   if(!draft) draft = JSON.parse(JSON.stringify(state.prefs || {causes:[], days:[], town:"Liberty Hill", maxMiles:15}));
-  $("#view").innerHTML = `
+  put(`
     <h2>${state.prefs ? "Your preferences" : "Set up your preferences"}</h2>
     <p class="muted">Saved only on this device. No account, no name, no location tracking.</p>
     <label>Causes you care about</label>
@@ -167,55 +186,58 @@ function viewSettings(){
     <select id="mi" onchange="draft.maxMiles=+this.value">${[5,10,15,25,40].map(m => `<option value="${m}" ${m===draft.maxMiles?"selected":""}>${m} miles</option>`).join("")}</select>
     <p id="err" class="err" role="alert"></p>
     <button class="primary" onclick="savePrefs()">Save and start swiping</button>
-    ${state.prefs ? '<div><button class="link" onclick="cancelSettings()">Cancel</button></div><div><button class="link" onclick="showSkipped()">Show skipped places again</button></div><div><button class="link" onclick="resetAll(this)">Erase all my data</button></div>' : ""}`;
+    ${state.prefs ? '<div><button class="link" onclick="cancelSettings()">Cancel</button></div><div><button class="link" onclick="showSkipped()">Show skipped places again</button></div><div><button class="link" onclick="resetAll(this)">Erase all my data</button></div>' : ""}
+    <div><button class="link" onclick="go('about')">How VolunSwipe works</button></div>`);
 }
 function chip(k, v){ return `<button class="chip ${draft[k].includes(v)?"on":""}" aria-pressed="${draft[k].includes(v)}" onclick="toggle('${k}','${v}')">${v}</button>`; }
 function toggle(k, v){ const a = draft[k], i = a.indexOf(v); i < 0 ? a.push(v) : a.splice(i, 1); viewSettings(); }
 function savePrefs(){
   if(!draft.causes.length || !draft.days.length){ $("#err").textContent = "Pick at least one cause and one free day."; return; }
-  state.prefs = draft; draft = null; state.seen = []; save(); go("discover");
+  state.prefs = draft; draft = null; state.seen = []; state.hist = []; save(); go("discover");
 }
 function resetAll(btn){
   if(!armed){ armed = true; btn.textContent = "Tap again to erase everything"; return; }
-  armed = false; state = {prefs:null, seen:[], saved:[], hours:[]}; draft = null; save(); go("settings");
+  armed = false; state = {prefs:null, seen:[], saved:[], hours:[], hist:[], hinted:false}; draft = null; save(); go("settings");
 }
 
 function viewDiscover(){
-  const d = deck();
+  const d = deck(), p = state.prefs;
+  const bar = `<div class="prefbar"><span>${esc(p.causes.join(", "))}, within ${p.maxMiles} miles of ${esc(p.town)}</span><button class="sm ghost" onclick="go('settings')">Change</button></div>`;
   if(!d.length){
     current = null;
-    $("#view").innerHTML = `<div class="empty"><h2>You have seen everything nearby</h2><p class="muted">Change your preferences to widen the search, or bring back the places you skipped.</p>
+    put(`<div class="empty"><h2>You have seen everything nearby</h2><p class="muted">Change your preferences to widen the search, or bring back the places you skipped.</p>
       <button class="primary" onclick="go('settings')">Change my preferences</button>
-      <button class="link" onclick="showSkipped()">Show skipped places again</button></div>`;
+      <button class="link" onclick="showSkipped()">Show skipped places again</button>
+      ${state.hist.length ? '<div><button class="link" onclick="undo()">Undo last swipe</button></div>' : ""}</div>`);
     return;
   }
   const {l, s} = d[0]; current = l;
-  const p = state.prefs;
-  $("#view").innerHTML = `
-    <div class="prefbar"><span>${esc(p.causes.join(", "))} within ${p.maxMiles} miles of ${esc(p.town)}</span><button class="small ghost" onclick="go('settings')">Change</button></div>
+  put(`${bar}
+    ${state.hinted ? "" : '<div class="hint"><span>Swipe a card right to save it and left to skip it. Tap the arrow to undo.</span><button class="sm" onclick="hideHint()">Got it</button></div>'}
     <div class="stack">
       <article class="card" id="card" aria-label="${esc(l.org)}">
-        <div class="band" style="background:${CAUSE_COLOR[l.cause]}"><span>${l.cause}</span><span>${s.total}% match</span></div>
+        <div class="band" style="--c:${CC[l.cause]};background-color:${CC[l.cause]}"><b>${l.cause}</b><div class="ring" style="--p:${s.total}"><i>${s.total}%</i></div></div>
         <div class="body">
           <h2>${esc(l.org)}</h2>
           <p class="task">${esc(l.task)}</p>
-          <dl>
-            <dt>When</dt><dd>${l.days.join(", ")}, ${esc(l.time)}</dd>
-            <dt>Where</dt><dd>${esc(l.town)}, ${s.d} miles away</dd>
-            <dt>Time</dt><dd>About ${l.hours} hours</dd>
-            <dt>Age</dt><dd>${l.minAge} and up</dd>
-          </dl>
-          <ul class="why">${s.why.map(w => `<li>${w}</li>`).join("")}</ul>
-          ${l.verified ? "" : '<span class="tag">Sample listing, not yet verified</span>'}
+          <div class="facts">
+            <div><small>When</small>${l.days.join(", ")}<br>${esc(l.time)}</div>
+            <div><small>Where</small>${esc(l.town)}<br>${s.d} miles away</div>
+            <div><small>Shift</small>About ${l.hours} hours</div>
+            <div><small>Age</small>${l.minAge} and up</div>
+          </div>
+          <div class="pills">${s.why.map(([t, ok]) => `<span class="pill ${ok?"ok":""}">${ok?"✓ ":""}${t}</span>`).join("")}</div>
+          ${tag(l)}
         </div>
         <div class="stamp save">Save</div><div class="stamp skip">Skip</div>
       </article>
     </div>
     <div class="actions">
       <button class="round skip" onclick="decide(false)" aria-label="Skip this opportunity">✕</button>
+      <button class="mini" onclick="undo()" aria-label="Undo last swipe" ${state.hist.length ? "" : "disabled"}>↶</button>
       <button class="round yes" onclick="decide(true)" aria-label="Save this opportunity">♥</button>
     </div>
-    <p class="muted center">${d.length} left. Swipe right to save, left to skip.</p>`;
+    <p class="center" style="color:var(--muted)">${d.length} left</p>`, 0);
   attachDrag($("#card"));
 }
 function attachDrag(el){
@@ -241,7 +263,7 @@ function decide(yes){
   el.style.transition = "transform .25s, opacity .25s";
   el.style.transform = `translateX(${yes?500:-500}px) rotate(${yes?25:-25}deg)`;
   el.style.opacity = 0;
-  setTimeout(() => { (yes ? state.saved : state.seen).push(id); save(); render(); }, 220);
+  setTimeout(() => { (yes ? state.saved : state.seen).push(id); state.hist.push(id); save(); render(); }, 220);
 }
 document.addEventListener("keydown", e => {
   if(tab !== "discover") return;
@@ -251,26 +273,59 @@ document.addEventListener("keydown", e => {
 
 function viewMatches(){
   const items = savedItems();
-  $("#view").innerHTML = "<h2>My matches</h2>" + (items.length ? items.map(l => `
-    <div class="row">
-      <div>
-        <strong>${esc(l.org)}</strong>
-        <div>${esc(l.task)}</div>
-        <div class="muted">${l.days.join(", ")}, ${esc(l.time)} in ${esc(l.town)}</div>
-        <a href="${esc(l.link)}" target="_blank" rel="noopener">Sign up with the organization</a>
+  put("<h2>My matches</h2>" + (items.length ? items.map(l => `
+    <div class="row" style="--c:${CC[l.cause]}">
+      <div><strong>${esc(l.org)}</strong><div>${esc(l.task)}</div><div class="muted">${l.days.join(", ")}, ${esc(l.time)} in ${esc(l.town)}</div>${tag(l)}</div>
+      <div class="btns">
+        <a class="sm" href="${esc(l.link)}" target="_blank" rel="noopener">Sign up</a>
+        <a class="sm" href="${esc(emailLink(l))}">Email organization</a>
+        <a class="sm" href="${esc(maps(l))}" target="_blank" rel="noopener">Directions</a>
+        <button class="sm" onclick="cal(${l.id})">Add to calendar</button>
+        <button class="sm" onclick="logFrom(${l.id})">Log hours</button>
+        <button class="sm ghost" onclick="unsave(${l.id})">Remove</button>
       </div>
-      <div class="col">
-        <button class="small" onclick="logFrom(${l.id})">Log hours</button>
-        <button class="small ghost" onclick="unsave(${l.id})">Remove</button>
-      </div>
-    </div>`).join("") : '<p class="muted">Nothing saved yet. Swipe right on an opportunity you like.</p>');
+    </div>`).join("") : '<p class="muted">Nothing saved yet. Swipe right on an opportunity you like.</p>'));
+}
+/* Opens the student's own email app with a ready-made message. Nothing is sent automatically. */
+function emailLink(l){
+  const days = l.days.join(" or ");
+  const body = "Hello,\n\nI found your volunteer opportunity through VolunSwipe and I'm interested in helping with " + l.task.toLowerCase() +
+    " (" + days + ", " + l.time + ").\n\nI'm [your age or grade] and live in the " + state.prefs.town +
+    " area. Could you tell me what the next steps are, and whether there is anything I should bring or sign beforehand?\n\nThank you,\n[Your name]";
+  return "mailto:" + (l.email || "") + "?subject=" + encodeURIComponent("Volunteer interest: " + l.task + " on " + days) + "&body=" + encodeURIComponent(body);
 }
 function logFrom(id){ prefillOrg = LISTINGS.find(l => l.id === id).org; go("hours"); }
 function unsave(id){ state.saved = state.saved.filter(x => x !== id); state.seen.push(id); save(); render(); }
 
+/* Calendar file (.ics) for the next occurrence of a place's first day */
+function cal(id){
+  const l = LISTINGS.find(x => x.id === id), now = new Date();
+  const diff = ((DAYS.indexOf(l.days[0]) + 1) % 7 - now.getDay() + 7) % 7 || 7;
+  const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff);
+  const ymd = day.getFullYear() + String(day.getMonth() + 1).padStart(2, "0") + String(day.getDate()).padStart(2, "0");
+  const t = l.time.match(/(\d{1,2})(?::(\d\d))?\s*(am|pm)\s*to\s*(\d{1,2})(?::(\d\d))?\s*(am|pm)/i);
+  const hm = (h, m, ap) => String(+h % 12 + (ap.toLowerCase() === "pm" ? 12 : 0)).padStart(2, "0") + (m || "00") + "00";
+  const when = t ? `DTSTART:${ymd}T${hm(t[1],t[2],t[3])}\r\nDTEND:${ymd}T${hm(t[4],t[5],t[6])}` : `DTSTART;VALUE=DATE:${ymd}`;
+  const x = s => String(s).replace(/[,;]/g, "\\$&");
+  const ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//VolunSwipe//EN","BEGIN:VEVENT","UID:vs-"+l.id+"-"+ymd+"@volunswipe",
+    "DTSTAMP:"+new Date().toISOString().replace(/[-:]/g,"").slice(0,15)+"Z", when, "SUMMARY:"+x("Volunteer: "+l.org),
+    "LOCATION:"+x(l.org+", "+l.town+", TX"), "DESCRIPTION:"+x(l.task), "END:VEVENT","END:VCALENDAR"].join("\r\n");
+  download("volunteer-" + l.id + ".ics", "text/calendar", ics);
+}
+function download(name, type, text){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], {type})); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+function mail(h){
+  return "mailto:?subject=" + encodeURIComponent("Volunteer hours confirmation") + "&body=" + encodeURIComponent(
+    "Hello,\n\nCould you please confirm that I volunteered " + h.hrs + " hours with " + h.org + " on " + h.date +
+    "? A short reply saying \"confirmed\" is all I need for my records.\n\nThank you!");
+}
 function viewHours(){
   const total = state.hours.reduce((a, h) => a + h.hrs, 0);
-  $("#view").innerHTML = `
+  put(`
     <h2>Hours tracker</h2>
     <div class="total"><span>${total}</span>hours logged</div>
     <label for="ho">Organization</label><input id="ho" maxlength="60" value="${esc(prefillOrg)}">
@@ -278,9 +333,10 @@ function viewHours(){
     <label for="hd">Date</label><input id="hd" type="date" value="${new Date().toISOString().slice(0,10)}">
     <p id="err" class="err" role="alert"></p>
     <button class="primary" onclick="addHours()">Add hours</button>
+    ${state.hours.length ? '<button class="primary alt" onclick="printSheet()">Print verification sheet</button><button class="primary alt" onclick="csv()">Download my hours (CSV)</button>' : ""}
     <div style="margin-top:20px">${state.hours.slice().reverse().map(h => `
-      <div class="row"><div><strong>${esc(h.org)}</strong><div class="muted">${esc(h.date)}, ${h.hrs} hours</div></div>
-      <button class="small ghost" onclick="delHours(${h.id})">Delete</button></div>`).join("")}</div>`;
+      <div class="row" style="--c:var(--btn)"><div><strong>${esc(h.org)}</strong><div class="muted">${esc(h.date)}, ${h.hrs} hours</div></div>
+      <div class="btns"><a class="sm" href="${esc(mail(h))}">Ask for confirmation</a><button class="sm ghost" onclick="delHours(${h.id})">Delete</button></div></div>`).join("")}</div>`);
   prefillOrg = "";
 }
 function addHours(){
@@ -289,6 +345,27 @@ function addHours(){
   state.hours.push({id: Date.now(), org, hrs, date}); save(); viewHours();
 }
 function delHours(id){ state.hours = state.hours.filter(h => h.id !== id); save(); viewHours(); }
+function printSheet(){
+  const total = state.hours.reduce((a, h) => a + h.hrs, 0);
+  $("#sheet").innerHTML = `<h1>Volunteer hours verification</h1><p>Student name: ______________________________</p>
+    <table><tr><th>Organization</th><th>Date</th><th>Hours</th><th>Supervisor name and signature</th></tr>
+    ${state.hours.map(h => `<tr><td>${esc(h.org)}</td><td>${esc(h.date)}</td><td>${h.hrs}</td><td></td></tr>`).join("")}</table>
+    <p><b>Total hours: ${total}</b></p><p>Supervisor phone or email: ______________________</p>`;
+  window.print();
+}
+function csv(){
+  const q = s => '"' + String(s).replace(/"/g, '""') + '"';
+  download("my-volunteer-hours.csv", "text/csv", "Organization,Date,Hours\n" + state.hours.map(h => [q(h.org), q(h.date), h.hrs].join(",")).join("\n"));
+}
+
+function viewAbout(){
+  put(`<h2>How VolunSwipe works</h2>
+    <p>Pick the causes you care about, the days you are free, and how far you can travel. Every place gets a score out of 100: 40 points for your causes, 30 for distance, and 30 for matching your free days. The best matches show first.</p>
+    <p><strong>Privacy.</strong> No accounts, names, or location tracking. Your choices, matches, and hours stay on this device.</p>
+    <p><strong>Confirmed places</strong> were checked with the organization. To prove your hours, print the verification sheet or ask the organization to confirm by email.</p>
+    ${REPORT_EMAIL ? `<p><a class="sm" href="mailto:${esc(REPORT_EMAIL)}?subject=VolunSwipe%20listing%20problem">Report a problem with a listing</a></p>` : ""}
+    <button class="primary" onclick="go('${state.prefs ? "discover" : "settings"}')">Back to the app</button>`);
+}
 
 load(); render();
 </script>
