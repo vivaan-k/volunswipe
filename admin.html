@@ -49,6 +49,7 @@ button.danger{background:var(--bad)}
   <label for="hours">Hours per shift</label><input id="hours" type="number" min="0.5" max="24" step="0.5" value="3">
   <label for="age">Minimum age</label><input id="age" type="number" min="5" max="21" value="14">
   <label for="link">Sign-up link (starts with https://)</label><input id="link" type="url" placeholder="https://">
+  <label for="email">Volunteer contact email (optional)</label><input id="email" type="email" maxlength="80">
   <label class="check"><input id="verified" type="checkbox"> I confirmed these details with the organization</label>
 
   <button id="go" onclick="addPlace()">Add place</button>
@@ -87,7 +88,8 @@ function insertListing(src, e){
   const line = "{id:" + id + ", org:" + JSON.stringify(e.org) + ", task:" + JSON.stringify(e.task) +
     ", cause:" + JSON.stringify(e.cause) + ", town:" + JSON.stringify(e.town) + ", days:" + JSON.stringify(e.days) +
     ", time:" + JSON.stringify(e.time) + ", hours:" + e.hours + ", minAge:" + e.minAge +
-    ", link:" + JSON.stringify(e.link) + ", verified:" + e.verified + "}";
+    ", link:" + JSON.stringify(e.link) + (e.email ? ", email:" + JSON.stringify(e.email) : "") +
+    ", verified:" + e.verified + (e.verified ? ", checked:" + JSON.stringify(new Date().toLocaleDateString("en-CA")) : "") + "}";
   const head = src.slice(0, end).replace(/\s+$/, "");
   const comma = head.endsWith(",") || head.endsWith("[") ? "" : ",";
   return {text: head + comma + "\n  " + line + src.slice(end), id};
@@ -116,13 +118,14 @@ function readForm(){
     org: $("#org").value.trim(), task: $("#task").value.trim(), cause: $("#cause").value, town: $("#town").value,
     days: DAYS.filter(d => $("#d-" + d).checked), time: $("#time").value.trim(),
     hours: parseFloat($("#hours").value), minAge: parseInt($("#age").value, 10),
-    link: $("#link").value.trim(), verified: $("#verified").checked
+    link: $("#link").value.trim(), email: $("#email").value.trim(), verified: $("#verified").checked
   };
   if(!e.org || !e.task || !e.time) throw new Error("Fill in the organization, what the volunteer does, and the time.");
   if(!e.days.length) throw new Error("Pick at least one day.");
   if(!(e.hours > 0 && e.hours <= 24)) throw new Error("Hours must be between 0.5 and 24.");
   if(!(e.minAge >= 5 && e.minAge <= 21)) throw new Error("Minimum age must be a number from 5 to 21.");
   if(!/^https:\/\//i.test(e.link)) throw new Error("The link must start with https://");
+  if(e.email && !/^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$/.test(e.email)) throw new Error("That email address does not look right.");
   return e;
 }
 
@@ -157,7 +160,7 @@ async function addPlace(){
     await putFile(c, out.text, f.sha, "Add place: " + e.org);
     rememberToken(c);
     say("Added " + e.org + ". It goes live in 1 to 2 minutes.", true);
-    ["org","task","time","link"].forEach(id => $("#" + id).value = "");
+    ["org","task","time","link","email"].forEach(id => $("#" + id).value = "");
     DAYS.forEach(d => $("#d-" + d).checked = false); $("#verified").checked = false;
     if($("#rm").options.length) fillPlaces(listPlaces(out.text));
   }catch(err){ say(err.message, false); }
