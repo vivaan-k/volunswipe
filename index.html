@@ -89,26 +89,106 @@ nav button:disabled{opacity:.4}
 
 <script>
 /* ============ DATA ============
-   The admin page adds and removes places in the list below.
-   To show a confirmation date on a card, add checked:"2026-10-20" to that place. */
+   The admin page adds and removes places in the list below. Days, times and ages here are estimates until
+   a place is confirmed: edit the line, then add verified:true (and checked:"2026-10-24" to show a date). */
 const CAUSES = ["Food", "Animals", "Environment", "Education", "Seniors", "Community"];
 const CC = {Food:"#b84c14", Animals:"#2b7a6a", Environment:"#4d7c0f", Education:"#3b4cca", Seniors:"#a3366b", Community:"#0e7490"};
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 // Approximate town centers (latitude, longitude), used only to estimate distance. No GPS is used.
-const TOWNS = {"Liberty Hill":[30.664,-97.923], "Leander":[30.579,-97.853], "Cedar Park":[30.505,-97.820], "Georgetown":[30.633,-97.678], "Round Rock":[30.508,-97.679], "Burnet":[30.758,-98.228], "Taylor":[30.571,-97.409], "Austin":[30.267,-97.743]};
-const SITE = "https://example.org";
+const TOWNS = {"Liberty Hill":[30.664,-97.923], "Leander":[30.579,-97.853], "Cedar Park":[30.505,-97.820], "Georgetown":[30.633,-97.678], "Round Rock":[30.508,-97.679], "Burnet":[30.758,-98.228], "Taylor":[30.571,-97.409], "Austin":[30.267,-97.743], "Marble Falls":[30.578,-98.273]};
 const REPORT_EMAIL = ""; // put your email between the quotes to show a "Report a problem" link
 const LISTINGS = [
-  {id:1,org:"Community food pantry",task:"Sort donations and pack grocery boxes",cause:"Food",town:"Georgetown",days:["Sat"],time:"9am to 12pm",hours:3,minAge:14,link:SITE,verified:false},
-  {id:2,org:"Regional food bank warehouse",task:"Help volunteers pack produce",cause:"Food",town:"Austin",days:["Tue","Thu"],time:"4pm to 7pm",hours:3,minAge:16,link:SITE,verified:false},
-  {id:4,org:"Animal shelter",task:"Walk dogs and socialize cats",cause:"Animals",town:"Georgetown",days:["Sat","Sun"],time:"10am to 1pm",hours:3,minAge:14,link:SITE,verified:false},
-  {id:5,org:"Rescue group",task:"Help at adoption events",cause:"Animals",town:"Cedar Park",days:["Sat"],time:"11am to 3pm",hours:4,minAge:13,link:SITE,verified:false},
-  {id:6,org:"County park",task:"Trail cleanup and litter pickup",cause:"Environment",town:"Liberty Hill",days:["Sat"],time:"8am to 11am",hours:3,minAge:12,link:SITE,verified:false},
-  {id:8,org:"Creek cleanup crew",task:"Collect trash along the creek",cause:"Environment",town:"Leander",days:["Sat"],time:"9am to 11am",hours:2,minAge:10,link:SITE,verified:false},
-  {id:9,org:"Public library",task:"Help kids with summer reading",cause:"Education",town:"Liberty Hill",days:["Mon","Wed"],time:"3:30pm to 5pm",hours:1.5,minAge:14,link:SITE,verified:false},
-  {id:10,org:"After-school tutoring program",task:"Tutor elementary students in math",cause:"Education",town:"Cedar Park",days:["Tue","Thu"],time:"4pm to 6pm",hours:2,minAge:15,link:SITE,verified:false},
-  {id:11,org:"Senior center",task:"Play games and visit with residents",cause:"Seniors",town:"Georgetown",days:["Wed","Fri"],time:"2pm to 4pm",hours:2,minAge:14,link:SITE,verified:false},
-  {id:13,org:"Neighborhood clothing closet",task:"Sort and organize donated clothes",cause:"Community",town:"Liberty Hill",days:["Sat"],time:"1pm to 4pm",hours:3,minAge:12,link:SITE,verified:false}
+  {id:91,org:"Liberty Hill Community Helpers (demo)",task:"Sort and hand out donations at community events",cause:"Community",town:"Liberty Hill",days:["Sat"],time:"10am to 1pm",hours:3,minAge:13,link:"https://vivaan-k.github.io/volunswipe/",email:"kalra.vivaan@gmail.com"},
+  {id:1,org:"Williamson County Regional Animal Shelter",task:"Walk dogs, socialize cats, do laundry and dishes, help at off-site events",cause:"Animals",town:"Georgetown",days:["Sat","Sun"],time:"10am to 1pm",hours:3,minAge:14,link:"https://www.wilcotx.gov/pets"},
+  {id:2,org:"Furr Baby Food Pantry",task:"Prepare pet food, take donation inventory, organize supplies, help guests",cause:"Animals",town:"Georgetown",days:["Sat"],time:"9am to 12pm",hours:3,minAge:14,link:"https://www.furrbabyfoodpantry.org"},
+  {id:3,org:"Georgetown Public Library",task:"Shelve books, prepare materials, support programs and events",cause:"Education",town:"Georgetown",days:["Mon","Wed"],time:"3:30pm to 5pm",hours:2,minAge:14,link:"https://library.georgetown.org"},
+  {id:4,org:"Georgetown Parks and Recreation volunteers",task:"Park and community volunteer days, special events",cause:"Environment",town:"Georgetown",days:["Sat"],time:"8am to 11am",hours:3,minAge:12,link:"https://parks.georgetown.org"},
+  {id:5,org:"Assistance League of Georgetown Area",task:"Read with children, work in the thrift shop, help with urgent community needs",cause:"Community",town:"Georgetown",days:["Sat"],time:"10am to 1pm",hours:3,minAge:13,link:"https://www.assistanceleague.org/georgetown-area"},
+  {id:6,org:"Brookwood in Georgetown",task:"Work alongside adults with special needs",cause:"Community",town:"Georgetown",days:["Sat","Sun"],time:"1pm to 4pm",hours:3,minAge:13,link:"https://www.bigtx.org",email:"conni@bigtx.org"},
+  {id:7,org:"The Caring Place",task:"Stock the food pantry, sort and price thrift donations, cashier",cause:"Food",town:"Georgetown",days:["Sat"],time:"9am to 12pm",hours:3,minAge:12,link:"https://www.caringplacetx.org"},
+  {id:8,org:"Georgetown Family YMCA",task:"Help with special events",cause:"Community",town:"Georgetown",days:["Wed"],time:"4pm to 6pm",hours:2,minAge:13,link:"https://www.ymcactx.org/locations/georgetown"},
+  {id:9,org:"Helping Hands of Georgetown",task:"Sort food and clothing donations, assemble pantry bags, hand out donations",cause:"Food",town:"Georgetown",days:["Tue","Thu"],time:"4pm to 6pm",hours:2,minAge:12,link:"https://www.helpinghandsgtx.org"},
+  {id:10,org:"Hope Alliance",task:"Donation drives and program support (ask what students can do)",cause:"Community",town:"Liberty Hill",days:["Sat"],time:"10am to 1pm",hours:3,minAge:16,link:"https://www.hopealliancetx.org"},
+  {id:11,org:"Opportunities for Williamson and Burnet Counties",task:"Read to preschoolers in Head Start, deliver Meals on Wheels",cause:"Seniors",town:"Georgetown",days:["Tue","Thu"],time:"10am to 12pm",hours:2,minAge:14,link:"https://www.owbc-tx.org"},
+  {id:12,org:"Meals on Wheels Williamson and Burnet Counties",task:"Deliver meals to homebound older adults by car",cause:"Seniors",town:"Round Rock",days:["Wed","Fri"],time:"2pm to 4pm",hours:2,minAge:16,link:"https://www.mealsonwheels-williamsonburnet.org"},
+  {id:13,org:"ROCK (Ride On Center for Kids)",task:"Work with horses, help at events, facility upkeep",cause:"Community",town:"Georgetown",days:["Sat","Sun"],time:"1pm to 4pm",hours:3,minAge:13,link:"https://www.rockride.org"},
+  {id:14,org:"United Way for Greater Austin",task:"Build supply kits, prepare meals, hand out diapers",cause:"Community",town:"Round Rock",days:["Wed"],time:"4pm to 6pm",hours:2,minAge:13,link:"https://www.unitedwayaustin.org"},
+  {id:15,org:"Academy 4",task:"Mentor fourth graders at Cooper Elementary",cause:"Education",town:"Georgetown",days:["Tue","Thu"],time:"4pm to 6pm",hours:2,minAge:14,link:"https://www.academy4.org"},
+  {id:16,org:"Boys & Girls Club of Georgetown",task:"Help with homework, tutor, run kids' activities",cause:"Education",town:"Georgetown",days:["Mon","Wed"],time:"3:30pm to 5pm",hours:2,minAge:14,link:"https://www.bgctx.org/georgetown"},
+  {id:17,org:"CASA of Williamson County",task:"Help at events and fundraisers (advocates are adults)",cause:"Community",town:"Georgetown",days:["Sat"],time:"10am to 1pm",hours:3,minAge:16,link:"https://www.casawilco.org"},
+  {id:18,org:"The Georgetown Project",task:"Help with a children's day program, sanitize toys, sort donations",cause:"Education",town:"Georgetown",days:["Tue","Thu"],time:"4pm to 6pm",hours:2,minAge:14,link:"https://www.georgetownproject.org"},
+  {id:19,org:"STARRY",task:"Build meal and snack kits, administrative help",cause:"Community",town:"Georgetown",days:["Sat","Sun"],time:"1pm to 4pm",hours:3,minAge:13,link:"https://www.starry.org"},
+  {id:20,org:"Williamson County Children's Advocacy Center",task:"Restock the stuffed animal room, prepare for events, enter data",cause:"Community",town:"Georgetown",days:["Wed"],time:"4pm to 6pm",hours:2,minAge:13,link:"https://www.wilcocac.org"},
+  {id:21,org:"Habitat for Humanity of Williamson County",task:"Work in the ReStore, stock merchandise, customer service",cause:"Community",town:"Georgetown",days:["Sat"],time:"10am to 1pm",hours:3,minAge:16,link:"https://www.williamsonhabitat.org"},
+  {id:22,org:"Faith in Action Georgetown",task:"Weekly phone calls to seniors",cause:"Seniors",town:"Georgetown",days:["Tue","Thu"],time:"10am to 12pm",hours:2,minAge:14,link:"https://www.faithinactiongt.org"},
+  {id:23,org:"A Gift of Time",task:"Spend time with people living with dementia",cause:"Seniors",town:"Georgetown",days:["Wed","Fri"],time:"2pm to 4pm",hours:2,minAge:14,link:"https://www.agiftoftimegeorgetown.org"},
+  {id:24,org:"AGE of Central Texas (Round Rock)",task:"Lead and help with activities for older adults, including those with dementia",cause:"Seniors",town:"Round Rock",days:["Tue","Thu"],time:"10am to 12pm",hours:2,minAge:14,link:"https://www.ageofcentraltx.org"},
+  {id:25,org:"Literacy Council of Williamson County",task:"Adult literacy tutoring and events",cause:"Education",town:"Georgetown",days:["Mon","Wed"],time:"3:30pm to 5pm",hours:2,minAge:14,link:"https://www.literacycouncil-wc.org"},
+  {id:26,org:"Cheyanna's Champions for Children",task:"Make handmade cards and gifts for children and parents, fundraising",cause:"Community",town:"Austin",days:["Sat","Sun"],time:"1pm to 4pm",hours:3,minAge:13,link:"https://www.cc4c.org"},
+  {id:27,org:"The Brooklynn Miller Foundation",task:"Help at events for families facing childhood cancer",cause:"Community",town:"Georgetown",days:["Wed"],time:"4pm to 6pm",hours:2,minAge:13,link:"https://www.bmillerfoundation.org"},
+  {id:28,org:"Candlelight Ranch",task:"Gardening, arts, cooking and sports programs for children of all abilities",cause:"Community",town:"Marble Falls",days:["Sat"],time:"10am to 1pm",hours:3,minAge:13,link:"https://www.candlelightranch.org"},
+  {id:29,org:"We Are Blood",task:"Help at blood drives, office support, outreach",cause:"Community",town:"Austin",days:["Sat","Sun"],time:"1pm to 4pm",hours:3,minAge:16,link:"https://www.weareblood.org"},
+  {id:30,org:"Drive a Senior ATX",task:"Help seniors with technology and simple home tasks",cause:"Seniors",town:"Austin",days:["Wed","Fri"],time:"2pm to 4pm",hours:2,minAge:16,link:"https://www.driveasenioratx.org"},
+  {id:31,org:"Round Rock Area Serving Center",task:"Receive and sort donations, hand out food at the pantry",cause:"Food",town:"Round Rock",days:["Sat","Sun"],time:"10am to 1pm",hours:3,minAge:12,link:"https://www.rrasc.org"},
+  {id:32,org:"Texas Baptist Children's Home",task:"Yard work, cleaning, organizing, help with drives and events",cause:"Community",town:"Round Rock",days:["Wed"],time:"4pm to 6pm",hours:2,minAge:13,link:"https://www.tbch.org"},
+  {id:33,org:"Round Rock Public Library",task:"Year-round and seasonal roles for teens and adults",cause:"Education",town:"Round Rock",days:["Tue","Thu"],time:"4pm to 6pm",hours:2,minAge:14,link:"https://www.roundrocktexas.gov/departments/library/get-involved/volunteer/"},
+  {id:34,org:"YMCA of Round Rock",task:"Help with programs and events",cause:"Community",town:"Round Rock",days:["Sat"],time:"10am to 1pm",hours:3,minAge:13,link:"https://www.ymcactx.org/locations/round-rock"},
+  {id:35,org:"RRISD Partners in Education Foundation",task:"Sort school supplies, help with grant and scholarship reviews",cause:"Education",town:"Round Rock",days:["Mon","Wed"],time:"3:30pm to 5pm",hours:2,minAge:14,link:"https://www.rrisdeducationfoundation.org"},
+  {id:36,org:"Senior Access (now part of Drive a Senior ATX)",task:"Help older adults with companionship and home tasks",cause:"Seniors",town:"Round Rock",days:["Tue","Thu"],time:"10am to 12pm",hours:2,minAge:16,link:"https://www.senioraccesstx.org"},
+  {id:37,org:"St. David's Round Rock Medical Center",task:"Hospital volunteer program",cause:"Community",town:"Round Rock",days:["Sat","Sun"],time:"1pm to 4pm",hours:3,minAge:15,link:"https://www.stdavids.com"},
+  {id:38,org:"Baylor Scott & White Round Rock Hospital",task:"Hospital and clinic volunteer program",cause:"Community",town:"Round Rock",days:["Wed"],time:"4pm to 6pm",hours:2,minAge:16,link:"https://www.sw.org/location/round-rock-hospital"},
+  {id:39,org:"The Dog Alliance",task:"Train with your own dog for therapy visits, or work with service dogs",cause:"Animals",town:"Cedar Park",days:["Wed","Sat"],time:"4pm to 6pm",hours:2,minAge:14,link:"https://www.thedogalliance.org"},
+  {id:40,org:"Austin Steam Train Association",task:"On-board roles such as car attendant and concession sales",cause:"Community",town:"Cedar Park",days:["Sat"],time:"10am to 1pm",hours:3,minAge:13,link:"https://www.austinsteamtrain.org"},
+  {id:41,org:"Reveal Resource Center",task:"Hand out food, clothing and diapers in a drive-thru setting",cause:"Food",town:"Cedar Park",days:["Sat"],time:"9am to 12pm",hours:3,minAge:12,link:"https://www.revealresourcecenter.com"},
+  {id:42,org:"Heroes Night Out (Heroes Resource Center)",task:"Support a veterans resource center",cause:"Community",town:"Cedar Park",days:["Sat","Sun"],time:"1pm to 4pm",hours:3,minAge:13,link:"https://www.heroesresourcecenter.org"},
+  {id:43,org:"River City Hope Street",task:"Work events, provide meals, shop for a teen at the holidays",cause:"Community",town:"Cedar Park",days:["Wed"],time:"4pm to 6pm",hours:2,minAge:13,link:"https://www.rivercityhope.org"},
+  {id:44,org:"Cedar Park Library Foundation",task:"Donor outreach and running the in-library bookstore",cause:"Education",town:"Cedar Park",days:["Tue","Thu"],time:"4pm to 6pm",hours:2,minAge:14,link:"https://cedarparkbooks.org"},
+  {id:45,org:"Hill Country Community Ministries",task:"Sort and stock shelves, help with food distribution",cause:"Food",town:"Leander",days:["Tue","Thu"],time:"4pm to 6pm",hours:2,minAge:12,link:"https://www.hccm.org"},
+  {id:46,org:"Operation Liberty Hill",task:"Sort donations, work in the thrift store, assemble food orders, front desk",cause:"Food",town:"Leander",days:["Sat","Sun"],time:"10am to 1pm",hours:3,minAge:12,link:"https://operationlh.org"},
+  {id:47,org:"Texas Humane Heroes",task:"Prepare animals for adoption",cause:"Animals",town:"Leander",days:["Sat","Sun"],time:"10am to 1pm",hours:3,minAge:14,link:"https://www.humaneheroes.org"},
+  {id:48,org:"Unchained Foundation",task:"Assemble and deliver care packages, plan events, run donation drives",cause:"Community",town:"Leander",days:["Sat"],time:"10am to 1pm",hours:3,minAge:13,link:"https://www.unchainedfoundation.org"},
+  {id:49,org:"Yesterday's Gone",task:"Run donation drives (ask what is needed)",cause:"Community",town:"Cedar Park",days:["Sat","Sun"],time:"1pm to 4pm",hours:3,minAge:13,link:"https://www.yesterdaysgone.org"},
+  {id:50,org:"Dr. Carol Ministries",task:"Ask what students can help with",cause:"Community",town:"Liberty Hill",days:["Wed"],time:"4pm to 6pm",hours:2,minAge:13,link:"https://www.drcarolministries.com"},
+  {id:51,org:"Leander Public Library",task:"Teen volunteer roles at the library",cause:"Education",town:"Leander",days:["Mon","Wed"],time:"3:30pm to 5pm",hours:2,minAge:14},
+  {id:52,org:"LA Care (Lake Area Care)",task:"Food pantry run by volunteers and area churches",cause:"Food",town:"Burnet",days:["Sat"],time:"9am to 12pm",hours:3,minAge:12},
+  {id:53,org:"City of Taylor Animal Shelter",task:"Walk dogs",cause:"Animals",town:"Taylor",days:["Sat"],time:"9am to 12pm",hours:3,minAge:14,link:"https://www.taylortx.gov",email:"animalshelter@taylortx.gov"},
+  {id:54,org:"Taylor Public Library",task:"Summer reading program and seasonal events",cause:"Education",town:"Taylor",days:["Tue","Thu"],time:"4pm to 6pm",hours:2,minAge:14,link:"https://www.taylortx.gov/173/Support-the-Library"},
+  {id:55,org:"Friends of the Taylor Public Library",task:"Library support",cause:"Education",town:"Taylor",days:["Mon","Wed"],time:"3:30pm to 5pm",hours:2,minAge:14,link:"https://www.taylortx.gov/173/Support-the-Library"},
+  {id:56,org:"Shepherd's Heart Food Pantry and Community Ministries",task:"Volunteers sort and hand out food on pantry days",cause:"Food",town:"Taylor",days:["Tue","Thu"],time:"4pm to 6pm",hours:2,minAge:12},
+  {id:57,org:"Agape Food Pantry of Taylor (Oasis Church)",task:"Community food pantry",cause:"Food",town:"Taylor",days:["Sat","Sun"],time:"10am to 1pm",hours:3,minAge:12},
+  {id:58,org:"Central Texas Food Bank",task:"Sort food in the warehouse, help in the kitchen or garden, mobile pantries",cause:"Food",town:"Austin",days:["Sat"],time:"9am to 12pm",hours:3,minAge:12,link:"https://www.centraltexasfoodbank.org"},
+  {id:59,org:"Austin Animal Center",task:"Dog walking, greeting adopters, basic animal care",cause:"Animals",town:"Austin",days:["Wed","Sat"],time:"4pm to 6pm",hours:2,minAge:13,link:"https://www.austintexas.gov/department/volunteer-austin-animal-services"},
+  {id:60,org:"Austin Public Library",task:"Teen volunteer roles at library branches",cause:"Education",town:"Austin",days:["Tue","Thu"],time:"4pm to 6pm",hours:2,minAge:14,link:"https://library.austintexas.gov/volunteer"},
+  {id:61,org:"Manos de Cristo",task:"Food pantry, clothes closet, events, grounds, tutoring",cause:"Food",town:"Austin",days:["Tue","Thu"],time:"4pm to 6pm",hours:2,minAge:12,link:"https://www.manosdecristo.org"},
+  {id:62,org:"SAFE Alliance",task:"Off-site and event projects",cause:"Community",town:"Austin",days:["Sat"],time:"10am to 1pm",hours:3,minAge:13,link:"https://www.safeaustin.org"},
+  {id:63,org:"Assistance League of Austin",task:"Programs and thrift house",cause:"Community",town:"Austin",days:["Sat","Sun"],time:"1pm to 4pm",hours:3,minAge:13,link:"https://www.alaustin.org"},
+  {id:64,org:"Lady Bird Johnson Wildflower Center",task:"Garden and plant volunteering",cause:"Environment",town:"Austin",days:["Sun"],time:"9am to 12pm",hours:3,minAge:12,link:"https://www.wildflower.org/volunteer"},
+  {id:65,org:"Casa Marianella",task:"Support for immigrants and refugees (ask what students can do)",cause:"Community",town:"Austin",days:["Wed"],time:"4pm to 6pm",hours:2,minAge:13,link:"https://www.casamarianella.org/volunteer"},
+  {id:66,org:"Caritas of Austin",task:"Support services for people experiencing homelessness (ask)",cause:"Community",town:"Austin",days:["Sat"],time:"10am to 1pm",hours:3,minAge:13,link:"https://www.caritasofaustin.org"},
+  {id:67,org:"Salvation Army Red Shield and Social Services Center",task:"Social services and shelter support (ask)",cause:"Community",town:"Austin",days:["Sat","Sun"],time:"1pm to 4pm",hours:3,minAge:13},
+  {id:68,org:"Austin Pets Alive",task:"Foster cats and dogs, help in the medical clinic, virtual roles",cause:"Animals",town:"Austin",days:["Sat","Sun"],time:"10am to 1pm",hours:3,minAge:14,link:"https://www.austinpetsalive.org"},
+  {id:69,org:"Austin Humane Society",task:"Thrift House and shelter programs",cause:"Animals",town:"Austin",days:["Sat"],time:"9am to 12pm",hours:3,minAge:14,link:"https://www.austinhumanesociety.org"},
+  {id:70,org:"CASA of Travis County",task:"Help at events (advocates are adults)",cause:"Community",town:"Austin",days:["Wed"],time:"4pm to 6pm",hours:2,minAge:16,link:"https://www.casatravis.org"},
+  {id:71,org:"Any Baby Can",task:"Help with family programs (ask)",cause:"Education",town:"Austin",days:["Mon","Wed"],time:"3:30pm to 5pm",hours:2,minAge:14,link:"https://www.anybabycan.org"},
+  {id:72,org:"Meals on Wheels, Burnet and Marble Falls sites",task:"Deliver meals and help with kitchen prep",cause:"Seniors",town:"Burnet",days:["Wed","Fri"],time:"2pm to 4pm",hours:2,minAge:16,link:"https://www.owbc-tx.org",email:"cberry@owbc-tx.org"},
+  {id:73,org:"Highland Lakes Habitat for Humanity",task:"Build and refurbish homes",cause:"Community",town:"Marble Falls",days:["Sat"],time:"10am to 1pm",hours:3,minAge:16,email:"hlhabitat@gmail.com"},
+  {id:74,org:"Hill Country Humane Society",task:"Help care for shelter animals",cause:"Animals",town:"Burnet",days:["Wed","Sat"],time:"4pm to 6pm",hours:2,minAge:14},
+  {id:75,org:"Herman Brown Free Library",task:"Help with library programs and the Friends group",cause:"Education",town:"Burnet",days:["Tue","Thu"],time:"4pm to 6pm",hours:2,minAge:14},
+  {id:76,org:"Boys & Girls Club of the Highland Lakes (Marble Falls unit)",task:"Help with community meals and youth programs",cause:"Education",town:"Marble Falls",days:["Mon","Wed"],time:"3:30pm to 5pm",hours:2,minAge:14},
+  {id:77,org:"Highland Lakes Crisis Network",task:"Help refurbish transitional housing units",cause:"Community",town:"Marble Falls",days:["Sat","Sun"],time:"1pm to 4pm",hours:3,minAge:13},
+  {id:78,org:"Jacob's Pantry",task:"Help at the pantry (ask what is needed)",cause:"Food",town:"Burnet",days:["Sat","Sun"],time:"10am to 1pm",hours:3,minAge:12},
+  {id:79,org:"Hope's Closet",task:"Help at the clothing closet (ask what is needed)",cause:"Community",town:"Burnet",days:["Wed"],time:"4pm to 6pm",hours:2,minAge:13},
+  {id:80,org:"Liberty Hill Public Library",task:"Teen volunteer roles at the library (ask)",cause:"Education",town:"Liberty Hill",days:["Tue","Thu"],time:"4pm to 6pm",hours:2,minAge:14},
+  {id:81,org:"L4 Cares",task:"Visit nursing homes and veterans, welcome-home parades, events for families",cause:"Community",town:"Liberty Hill",days:["Sat"],time:"10am to 1pm",hours:3,minAge:13,link:"https://www.l4cares.org"},
+  {id:82,org:"Leander ISD PTA Clothes Closet",task:"Sort, tag and fold clothes, help shoppers",cause:"Community",town:"Leander",days:["Sat","Sun"],time:"1pm to 4pm",hours:3,minAge:13,link:"https://www.lisdptacouncil.com/clothes-closet"},
+  {id:83,org:"Leander ISD Educational Excellence Foundation",task:"Book drives, event help, ambassador role",cause:"Education",town:"Leander",days:["Mon","Wed"],time:"3:30pm to 5pm",hours:2,minAge:14,link:"https://leeftx.org"},
+  {id:84,org:"Central Texas SPCA",task:"Help with events and special projects, occasional animal help",cause:"Animals",town:"Leander",days:["Sat","Sun"],time:"10am to 1pm",hours:3,minAge:14,link:"https://www.centraltexasspca.org"},
+  {id:85,org:"Baker Sanctuary (Travis Audubon)",task:"Habitat restoration and trail maintenance",cause:"Environment",town:"Leander",days:["Sat"],time:"8am to 11am",hours:3,minAge:12,link:"https://www.travisaudubon.org"},
+  {id:86,org:"Texas Master Naturalist Good Water Chapter",task:"Rescue native plants, butterfly gardens, collect trash",cause:"Environment",town:"Georgetown",days:["Sun"],time:"9am to 12pm",hours:3,minAge:12,link:"https://www.txmn.org/goodwater"},
+  {id:87,org:"Hope Austin",task:"Assemble weekend meal and snack kits for students",cause:"Food",town:"Austin",days:["Sat"],time:"9am to 12pm",hours:3,minAge:12,link:"https://www.hope4austin.org"},
+  {id:88,org:"Drive a Senior Northwest",task:"Visit or call seniors",cause:"Seniors",town:"Austin",days:["Tue","Thu"],time:"10am to 12pm",hours:2,minAge:16,link:"https://www.driveaseniornorthwest.org"},
+  {id:89,org:"Meals on Wheels Central Texas",task:"Meal delivery and other senior support",cause:"Seniors",town:"Austin",days:["Wed","Fri"],time:"2pm to 4pm",hours:2,minAge:16,link:"https://www.mealsonwheelscentraltexas.org"},
+  {id:90,org:"The Salvation Army in Williamson County",task:"Organize the pantry, hand out food, teach classes, ring bells at Christmas",cause:"Community",town:"Georgetown",days:["Wed"],time:"4pm to 6pm",hours:2,minAge:13,link:"http://salvationarmyaustin.org"}
 ];
 
 /* ============ STATE (saved only in this browser) ============ */
@@ -120,7 +200,8 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const put = (h, panel = 1) => $("#view").innerHTML = panel ? `<section class="panel">${h}</section>` : h;
 const fmt = d => new Date(d + "T12:00").toLocaleDateString("en-US", {month:"short", day:"numeric"});
-const tag = l => l.verified ? `<span class="tag ok">Confirmed${l.checked ? " " + fmt(l.checked) : ""}</span>` : '<span class="tag">Not yet confirmed</span>';
+const tag = l => l.verified ? `<span class="tag ok">Confirmed${l.checked ? " " + fmt(l.checked) : ""}</span>` : '<span class="tag">Estimated details, not yet confirmed</span>';
+const findLink = l => "https://www.google.com/search?q=" + encodeURIComponent(l.org + " " + l.town + " TX volunteer");
 const maps = l => "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(l.org + ", " + l.town + ", TX");
 
 /* ============ MATCHING ALGORITHM ============
@@ -277,7 +358,7 @@ function viewMatches(){
     <div class="row" style="--c:${CC[l.cause]}">
       <div><strong>${esc(l.org)}</strong><div>${esc(l.task)}</div><div class="muted">${l.days.join(", ")}, ${esc(l.time)} in ${esc(l.town)}</div>${tag(l)}</div>
       <div class="btns">
-        <a class="sm" href="${esc(l.link)}" target="_blank" rel="noopener">Sign up</a>
+        <a class="sm" href="${esc(l.link || findLink(l))}" target="_blank" rel="noopener">Sign up</a>
         <a class="sm" href="${esc(emailLink(l))}">Email organization</a>
         <a class="sm" href="${esc(maps(l))}" target="_blank" rel="noopener">Directions</a>
         <button class="sm" onclick="cal(${l.id})">Add to calendar</button>
@@ -289,7 +370,7 @@ function viewMatches(){
 /* Opens the student's own email app with a ready-made message. Nothing is sent automatically. */
 function emailLink(l){
   const days = l.days.join(" or ");
-  const body = "Hello,\n\nI found your volunteer opportunity through VolunSwipe and I'm interested in helping with " + l.task.toLowerCase() +
+  const body = "Hello,\n\nI found your volunteer opportunity through VolunSwipe and I'm interested in this role: " + l.task.toLowerCase() +
     " (" + days + ", " + l.time + ").\n\nI'm [your age or grade] and live in the " + state.prefs.town +
     " area. Could you tell me what the next steps are, and whether there is anything I should bring or sign beforehand?\n\nThank you,\n[Your name]";
   return "mailto:" + (l.email || "") + "?subject=" + encodeURIComponent("Volunteer interest: " + l.task + " on " + days) + "&body=" + encodeURIComponent(body);
