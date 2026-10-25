@@ -360,6 +360,7 @@ function viewMatches(){
       <div class="btns">
         <a class="sm" href="${esc(l.link || findLink(l))}" target="_blank" rel="noopener">Sign up</a>
         <a class="sm" href="${esc(emailLink(l))}">Email organization</a>
+        <a class="sm" href="${esc(gmailLink(l))}" target="_blank" rel="noopener">Open in Gmail</a>
         <a class="sm" href="${esc(maps(l))}" target="_blank" rel="noopener">Directions</a>
         <button class="sm" onclick="cal(${l.id})">Add to calendar</button>
         <button class="sm" onclick="logFrom(${l.id})">Log hours</button>
@@ -368,13 +369,15 @@ function viewMatches(){
     </div>`).join("") : '<p class="muted">Nothing saved yet. Swipe right on an opportunity you like.</p>'));
 }
 /* Opens the student's own email app with a ready-made message. Nothing is sent automatically. */
-function emailLink(l){
+function emailParts(l){
   const days = l.days.join(" or ");
   const body = "Hello,\n\nI found your volunteer opportunity through VolunSwipe and I'm interested in this role: " + l.task.toLowerCase() +
     " (" + days + ", " + l.time + ").\n\nI'm [your age or grade] and live in the " + state.prefs.town +
     " area. Could you tell me what the next steps are, and whether there is anything I should bring or sign beforehand?\n\nThank you,\n[Your name]";
-  return "mailto:" + (l.email || "") + "?subject=" + encodeURIComponent("Volunteer interest: " + l.task + " on " + days) + "&body=" + encodeURIComponent(body);
+  return {to: l.email || "", subject: "Volunteer interest: " + l.task + " on " + days, body};
 }
+function emailLink(l){ const m = emailParts(l); return "mailto:" + m.to + "?subject=" + encodeURIComponent(m.subject) + "&body=" + encodeURIComponent(m.body); }
+function gmailLink(l){ const m = emailParts(l); return "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(m.to) + "&su=" + encodeURIComponent(m.subject) + "&body=" + encodeURIComponent(m.body); }
 function logFrom(id){ prefillOrg = LISTINGS.find(l => l.id === id).org; go("hours"); }
 function unsave(id){ state.saved = state.saved.filter(x => x !== id); state.seen.push(id); save(); render(); }
 
